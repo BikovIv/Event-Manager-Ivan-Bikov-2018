@@ -1,0 +1,8 @@
+To run the project you must have installed Visual Studio.
+
+1. Open EventManager.sln in Visual Studio;
+
+2. If neccecery, change your .NET Framework version;
+
+3. When the project is loaded press Ctrl + F5 to run;
+

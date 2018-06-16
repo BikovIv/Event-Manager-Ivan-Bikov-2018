@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Event manager</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+        <h2>All Events</h2>
+        <table class="table-bordered" style="border: 2px solid gray">
+            <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Location
+                    </th>
+                    <th>
+                        Start Date
+                    </th>
+                    <th>
+                        End Date
+                    </th>
+                    <th>
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="tbody"></tbody>
+        </table>  
+      
+
+        <h2>Create event</h2>
+     
+            <div>
+                <label for="id">Id:</label>
+                <input type="text" id="Id" placeholder="Id" disabled="disabled"/>
+            </div>
+
+               <div >
+                    <label for="Name">Name:</label>
+                    <input type="text" id="Name" placeholder="Name" />
+                </div>
+                <div >
+                    <label for="Location">Location:</label>
+                    <input type="text"  id="Location" placeholder="Location" />
+                </div>
+                <div >
+                    <label for="StartDate">Start date (mm/dd/yyyy hh:mm:ss):</label>
+                    <input type="datetime"  id="StartDate" placeholder="Start Date" />
+                </div>
+                <div >
+                    <label for="EndDate">End date (mm/dd/yyyy hh:mm:ss):</label>
+                    <input type="datetime" id="EndDate" placeholder="EndDate" />
+                </div>
+
+        <div>
+            <button type="button"  id="btnAdd" onclick="Add();">Create</button>
+        </div>
+
+    <div>
+        <button type="button" id="btnUpdate" onclick="Update();">Update</button>  
+    </div>
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+
+    <script>
+        var uri = '/api/events/get-all';
+
+        function formatItem(item) {
+            return 'Name: ' + item.Name + '; Location: ' + item.Location + '; Start date: ' + item.StartDate + '; End date: ' + item.EndDate;
+        }
+
+        $(document).ready(function () {
+            loadData();
+            $('#btnUpdate').hide();
+        });
+        //Load Data function  
+        function loadData() {
+            $.ajax({
+                url: "/api/events/get-all",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html += '<tr>';
+                        html += '<td>' + item.Id + '</td>';
+                        html += '<td>' + item.Name + '</td>';
+                        html += '<td>' + item.Location + '</td>';
+                        html += '<td>' + item.StartDate + '</td>';
+                        html += '<td>' + item.EndDate + '</td>';
+                        html += '<td><a href="#" onclick="getbyID(' + item.Id + ')">Edit</a> | <a href="#" onclick="Delele(' + item.Id + ')">Delete</a></td>';
+                        html += '</tr>';
+                    });
+                    $('.tbody').html(html);
+                    
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+
+        //Add  
+        function Add() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var eventObj = {
+                Name: $('#Name').val(),
+                Location: $('#Location').val(),
+                StartDate: $('#StartDate').val(),
+                EndDate: $('#EndDate').val()
+            };
+            $.ajax({
+                url: "/api/events/post",
+                data: JSON.stringify(eventObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    clearTextBox();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    
+        //update 
+        function Update() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var empObj = {
+                Id: $('#Id').val(),
+                Name: $('#Name').val(),
+                Location: $('#Location').val(),
+                StartDate: $('#StartDate').val(),
+                EndDate: $('#EndDate').val()
+            };
+            $.ajax({
+                url: "/api/events/put?id=" + empObj.Id,
+                data: JSON.stringify(empObj),
+                type: "PUT",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    clearTextBox();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });       
+        }  
+
+        function Delele(ID) {
+            var ans = confirm("Are you sure you want to delete this Record?");
+            if (ans) {
+                $.ajax({
+                    url: "/api/events/delete?id=" + ID,
+                    type: "DELETE",
+                    contentType: "application/json;charset=UTF-8",
+                    dataType: "json",
+                    success: function (result) {
+                        loadData();
+                    },
+                    error: function (errormessage) {
+                        alert(errormessage.responseText);
+                    }
+                });
+            }
+        }  
+
+        function getbyID(Id) {
+            $('#Id');
+            $('#Name').css('border-color', 'lightgrey');
+            $('#Location').css('border-color', 'lightgrey');
+            $('#StartDate').css('border-color', 'lightgrey');
+            $('#EndDate').css('border-color', 'lightgrey');
+            $.ajax({
+                url: "/api/events/get?id=" + Id,
+                typr: "GET",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    $('#Id').val(result.Id);
+                    $('#Name').val(result.Name);
+                    $('#Location').val(result.Location);
+                    $('#StartDate').val(result.StartDate);
+                    $('#EndDate').val(result.EndDate);
+
+                    
+                    $('#btnUpdate').show();
+                    $('#btnAdd').hide();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+            return false;
+        }  
+
+        //Valdidation
+        function validate() {
+            var isValid = true;
+            if ($('#Name').val().trim() == "") {
+                $('#Name').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Name').css('border-color', 'lightgrey');
+            }
+            if ($('#Location').val().trim() == "") {
+                $('#Location').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#Location').css('border-color', 'lightgrey');
+            }
+            if ($('#StartDate').val().trim() == "") {
+                $('#StartDate').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#StartDate').css('border-color', 'lightgrey');
+            }
+            if ($('#EndDate').val().trim() == "") {
+                $('#EndDate').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#EndDate').css('border-color', 'lightgrey');
+            }
+            return isValid;
+        }
+
+        function clearTextBox() {
+            $('#Id').val("");
+            $('#Name').val("");
+            $('#Location').val("");
+            $('#StartDate').val("");
+            $('#EndDate').val("");
+            $('#btnUpdate').hide();
+            $('#btnAdd').show();
+            $('#Name').css('border-color', 'lightgrey');
+            $('#Location').css('border-color', 'lightgrey');
+            $('#SatrtDate').css('border-color', 'lightgrey');
+            $('#EndDate').css('border-color', 'lightgrey');
+        }  
+
+    </script>
+</body>
+</html>
